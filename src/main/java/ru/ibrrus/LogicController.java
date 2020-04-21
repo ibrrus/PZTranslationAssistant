@@ -86,8 +86,7 @@ public class LogicController {
                     try (Stream<String> fileStream = Files.lines(oneFile.toPath(), StandardCharsets.UTF_8)) {
                         fileStream.filter(s -> s.trim().startsWith(RECIPE_SEARCH_NAME.toLowerCase())).forEach(s -> {
                             s = s.substring(s.indexOf(RECIPE_SEARCH_NAME.toLowerCase()) + RECIPE_SEARCH_NAME.length()).trim()
-                                    .replace(" ", "_")
-                                    .replace("-", "_");
+                                    .replace(" ", "_");
                             elements.add(s);
                         });
                     } catch (IOException e) {
@@ -103,7 +102,7 @@ public class LogicController {
         try (Stream<String> fileStream = Files.lines(Paths.get(оldStr), Charset.forName("windows-1251"))) {
             fileStream.filter(s -> s.trim().startsWith(SEARCH_NAME)).forEach(s -> {
                 String key = s.substring(s.indexOf('_') + 1,s.indexOf('=')-1).trim().toLowerCase();
-                String value =s.substring(s.indexOf('=') + 1,s.lastIndexOf(',')).trim();
+                String value = s.substring(s.indexOf('=') + 1,s.lastIndexOf(',')).trim();
                 old_translate.put(key, value);
             });
         } catch (IOException e) {
