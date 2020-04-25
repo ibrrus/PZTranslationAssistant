@@ -165,14 +165,27 @@ public class MainWindowController {
     }
 
     @FXML
+    private TextField languageCodeTF;
+
+    @FXML
+    private void textFieldTyped(){
+        languageCodeTF.setTextFormatter(new TextFormatter<>((change) -> {
+            change.setText(change.getText().toUpperCase());
+            return change;
+        }));
+    }
+
+    @FXML
     private void generateBtnCmd() throws IOException {
+        String languageCode = languageCodeTF.getText();
+        if (languageCode.trim().isEmpty()) languageCode = "XX";
         List <File> scriptsList = textArea.getItems();
         Boolean itemsCheck = itemsCb.isSelected();
         Boolean recipesCheck = recipesCb.isSelected();
         List <String> itemsOldStr = itemsOldPath.getItems();
         List <String> recipesOldStr = recipesOldPath.getItems();
         try{
-            LogicController.generate(scriptsList, itemsCheck, recipesCheck,itemsOldStr, recipesOldStr);
+            LogicController.generate(scriptsList, itemsCheck, recipesCheck,itemsOldStr, recipesOldStr, languageCode);
         } catch (IOException ex){
         }
     }

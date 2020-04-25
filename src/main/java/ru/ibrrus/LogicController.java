@@ -22,10 +22,14 @@ public class LogicController {
 
     private static String ITEM_SEARCH_NAME = "DisplayName";
     private static String RECIPE_SEARCH_NAME = "Recipe";
-    private static String ITEM_FILE_NAME = "Items_XX";
-    private static String RECIPE_FILE_NAME = "Recipes_XX";
+    private static String ITEM_FILE_NAME = "Items_";
+    private static String RECIPE_FILE_NAME = "Recipes_";
+    static String CHARSET;
+    static String languageCode;
 
-    protected static void generate(List<File> scriptsList, Boolean itemsCheck, Boolean recipesCheck, List<String> itemsOldStr, List<String> recipesOldStr) throws IOException {
+    protected static void generate(List<File> scriptsList, Boolean itemsCheck, Boolean recipesCheck,
+                                   List<String> itemsOldStr, List<String> recipesOldStr, String languageCode)
+            throws IOException {
         Alert alert;
         if (scriptsList.isEmpty()) {
             alert = new Alert(AlertType.ERROR);
@@ -39,21 +43,42 @@ public class LogicController {
         TreeSet<String> items_elements = new TreeSet<String>();
         TreeSet<String> recipes_elements = new TreeSet<String>();
         TreeMap<String, String> old_translate = new TreeMap<>();
+        LogicController.languageCode = languageCode;
+        switch (languageCode) {
+            case "RU":            case "PT":            case "PTBR":
+            case "NL":            case "HU":            case "PL":
+            case "ES":            case "EE":            case "DE":
+            case "FR":            case "CS":            case "TR":
+            case "IT":            case "CH":            case "DA":
+            case "AR":            case "NO":
+                CHARSET = "windows-1251";
+                break;
+            case "KO":
+                CHARSET = "UTF-16";
+                break;
+            case "EN":            case "TH":            case "CN":
+            case "JP": // TODO test!!!
+                CHARSET = "UTF-8";
+            default:
+                CHARSET = "windows-1251";
+                break;
+        }
 
         if (itemsCheck) {
             getElements("Items", items_elements, scriptsList);
             if (!itemsOldStr.isEmpty()) {
-                takeOldTranslate(old_translate, itemsOldStr, ITEM_SEARCH_NAME, "windows-1251");
+                takeOldTranslate(old_translate, itemsOldStr, ITEM_SEARCH_NAME);
             }
-            writeFiles(ITEM_FILE_NAME, ITEM_SEARCH_NAME, items_elements, !itemsOldStr.isEmpty(), old_translate);
+            writeFiles(ITEM_FILE_NAME + languageCode, ITEM_SEARCH_NAME, items_elements, !itemsOldStr.isEmpty(),
+                    old_translate);
         }
 
         if (recipesCheck) {
             getElements("Recipes", recipes_elements, scriptsList);
             if (!recipesOldStr.isEmpty()) {
-                takeOldTranslate(old_translate, recipesOldStr, RECIPE_SEARCH_NAME, "windows-1251");
+                takeOldTranslate(old_translate, recipesOldStr, RECIPE_SEARCH_NAME);
             }
-            writeFiles(RECIPE_FILE_NAME, RECIPE_SEARCH_NAME, recipes_elements, !recipesOldStr.isEmpty(), old_translate);
+            writeFiles(RECIPE_FILE_NAME + languageCode, RECIPE_SEARCH_NAME, recipes_elements, !recipesOldStr.isEmpty(), old_translate);
         }
         alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(null);
@@ -97,8 +122,7 @@ public class LogicController {
         }
     }
 
-    private static void takeOldTranslate(TreeMap old_translate, List<String> оldFiles, String SEARCH_NAME,
-                                         String CHARSET) {
+    private static void takeOldTranslate(TreeMap old_translate, List<String> оldFiles, String SEARCH_NAME) {
         old_translate.clear();
         for (String oldFile : оldFiles) {
             System.out.println(oldFile.toString());
@@ -129,14 +153,15 @@ public class LogicController {
         }
     }
 
-    private static void writeFiles (String FILE_NAME, String SEARCH_NAME, TreeSet <String> elements, Boolean itemOldCheck, TreeMap<String, String> old_translate) {
+    private static void writeFiles (String FILE_NAME, String SEARCH_NAME, TreeSet <String> elements,
+                                    Boolean itemOldCheck, TreeMap<String, String> old_translate) {
         TreeSet <String> notTranslation = new TreeSet <String>();
         try (FileWriter new_translate
-                     = new FileWriter("new_" + FILE_NAME + ".txt", Charset.forName("windows-1251"))){
+                     = new FileWriter("new_" + FILE_NAME + ".txt", Charset.forName(CHARSET))){
             if (FILE_NAME.startsWith("Item")) {
-                new_translate.write("Items_XX = {\n");
+                new_translate.write("Items_" + languageCode + " = {\n");
             } else {
-                new_translate.write("Recipe_XX = {\n");
+                new_translate.write("Recipe_" + languageCode + " = {\n");
             }
             new_translate.write("\t/* Created by PZTranslationAssistant */\n");
             new_translate.write("\t/* Datetime: " + new Date().toString() + " */\n\n");
