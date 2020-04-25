@@ -28,7 +28,7 @@ public class MainWindowController {
     private void addFilesCmd() throws IOException {
         File defaultDirectory = new File(defaultDirectoryStr);
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select files ...");
+        fileChooser.setTitle("Select script files ...");
         fileChooser.setInitialDirectory(defaultDirectory);
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         try {
@@ -43,7 +43,7 @@ public class MainWindowController {
     private void addFolderCmd() throws IOException {
         File defaultDirectory = new File(defaultDirectoryStr);
         DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select folder ...");
+        directoryChooser.setTitle("Select folder with scripts ...");
         directoryChooser.setInitialDirectory(defaultDirectory);
         try {
             File directory = directoryChooser.showDialog(App.guiStage);
@@ -91,7 +91,7 @@ public class MainWindowController {
         File defaultDirectory = new File(defaultDirectoryStr);
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(defaultDirectory);
-        fileChooser.setTitle("Select file ...");
+        fileChooser.setTitle("Select translation file with items  ...");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         try {
             File t = fileChooser.showOpenDialog(App.guiStage);
@@ -136,7 +136,7 @@ public class MainWindowController {
         File defaultDirectory = new File(defaultDirectoryStr);
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(defaultDirectory);
-        fileChooser.setTitle("Select file ...");
+        fileChooser.setTitle("Select translation file with recipes ...");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         try {
             File t = fileChooser.showOpenDialog(App.guiStage);

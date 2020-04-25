@@ -26,39 +26,43 @@ public class LogicController {
     private static String RECIPE_FILE_NAME = "Recipes_";
     static String CHARSET;
     static String languageCode;
+    static Alert alert;
+
+    protected static void showAlert(AlertType alertType, String message) throws IOException{
+        alert = new Alert(alertType);
+        ((Stage)alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image(App.class.getResource("img/logo.png").toString()));
+        alert.setTitle(null);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+        throw new IOException(message);
+    }
+
 
     protected static void generate(List<File> scriptsList, Boolean itemsCheck, Boolean recipesCheck,
                                    List<String> itemsOldStr, List<String> recipesOldStr, String languageCode)
             throws IOException {
-        Alert alert;
         if (scriptsList.isEmpty()) {
-            alert = new Alert(AlertType.ERROR);
-            alert.setTitle(null);
-            alert.setContentText("Script list is empty.");
-            alert.setHeaderText(null);
-            ((Stage)alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image(App.class.getResource("img/logo.png").toString()));
-            alert.showAndWait();
-            throw new IOException("Script list is empty.");
+            showAlert(AlertType.ERROR, "Script list is empty.");
         }
         TreeSet<String> items_elements = new TreeSet<String>();
         TreeSet<String> recipes_elements = new TreeSet<String>();
         TreeMap<String, String> old_translate = new TreeMap<>();
         LogicController.languageCode = languageCode;
         switch (languageCode) {
-            case "RU":            case "PT":            case "PTBR":
-            case "NL":            case "HU":            case "PL":
-            case "ES":            case "EE":            case "DE":
-            case "FR":            case "CS":            case "TR":
-            case "IT":            case "CH":            case "DA":
-            case "AR":            case "NO":
+            case "RU":            case "PT":            case "PTBR":            case "NL":
+            case "HU":            case "PL":            case "ES":              case "EE":
+            case "DE":            case "FR":            case "CS":              case "TR":
+            case "IT":            case "CH":            case "DA":              case "AR":
+            case "NO":
                 CHARSET = "windows-1251";
                 break;
             case "KO":
                 CHARSET = "UTF-16";
                 break;
             case "EN":            case "TH":            case "CN":
-            case "JP": // TODO test!!!
                 CHARSET = "UTF-8";
+            case "JP": // TODO Don't work.
             default:
                 CHARSET = "windows-1251";
                 break;
@@ -80,17 +84,14 @@ public class LogicController {
             }
             writeFiles(RECIPE_FILE_NAME + languageCode, RECIPE_SEARCH_NAME, recipes_elements, !recipesOldStr.isEmpty(), old_translate);
         }
-        alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle(null);
-        alert.setContentText("Done!\nItems: " + items_elements.size() + ". Recipes: " + recipes_elements.size() + ".\nSave in: " + System.getProperty("user.dir"));
-        alert.setHeaderText(null);
-        ((Stage)alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image(App.class.getResource("img/logo.png").toString()));
-        alert.showAndWait();
+        showAlert(AlertType.INFORMATION,"Done!\nItems: " + items_elements.size() + ". " +
+                                                "Recipes: " + recipes_elements.size() + ".\n" +
+                                                "Save in: " + System.getProperty("user.dir") );
     }
 
     private static void getElements (String typeElement,
                           TreeSet elements,
-                          List<File> scriptsList) {
+                          List<File> scriptsList) throws IOException{
         switch (typeElement){
             case "Items":
                 for (File oneFile : scriptsList) {
@@ -102,7 +103,7 @@ public class LogicController {
                             elements.add(s);
                         });
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        showAlert(AlertType.ERROR, "Something goes wrong with open script files (Items)!");
                     }
                 }
                 break;
@@ -115,46 +116,37 @@ public class LogicController {
                             elements.add(s);
                         });
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        showAlert(AlertType.ERROR, "Something goes wrong with open script files (Recipes)!");
                     }
                 }
                 break;
         }
     }
 
-    private static void takeOldTranslate(TreeMap old_translate, List<String> оldFiles, String SEARCH_NAME) {
+    private static void takeOldTranslate(TreeMap old_translate, List<String> оldFiles, String SEARCH_NAME)
+                                        throws IOException{
         old_translate.clear();
         for (String oldFile : оldFiles) {
-            System.out.println(oldFile.toString());
             try (Stream<String> fileStream = Files.lines(Paths.get(oldFile), Charset.forName(CHARSET))) {
                 fileStream.filter(s -> s.trim().startsWith(SEARCH_NAME)).forEach(s -> {
                     try{
-                        String key = s.substring(s.indexOf('_') + 1, s.indexOf('=') - 1).trim().toLowerCase();
+                        s = s.trim();
+                        String key = s.substring(SEARCH_NAME.length(), s.indexOf('=') - 1).trim().toLowerCase();
+                        if (key.startsWith("_")) key = key.substring(1);
                         String value = s.substring(s.indexOf('=') + 1, s.lastIndexOf(',')).trim();
                         old_translate.put(key, value);
                     } catch (Exception mie){
                     }
                 });
-            } catch (Exception e) {
-                try (Stream<String> fileStream = Files.lines(Paths.get(oldFile))) {
-                    fileStream.filter(s -> s.trim().startsWith(SEARCH_NAME)).forEach(s -> {
-                        try{
-                            String key = s.substring(s.indexOf('_') + 1, s.indexOf('=') - 1).trim().toLowerCase();
-                            String value = s.substring(s.indexOf('=') + 1, s.lastIndexOf(',')).trim();
-                            old_translate.put(key, value);
-                        } catch (Exception mie){
-                        }
-                    });
-                } catch (IOException ea) {
-                    System.out.println("ERROR");
-                    //ea.printStackTrace();
-                }
+            } catch (Exception ea) {
+                showAlert(AlertType.ERROR, "Something goes wrong with old translations! " +
+                        "                           Did you enter the correct language code?");
             }
         }
     }
 
     private static void writeFiles (String FILE_NAME, String SEARCH_NAME, TreeSet <String> elements,
-                                    Boolean itemOldCheck, TreeMap<String, String> old_translate) {
+                                    Boolean itemOldCheck, TreeMap<String, String> old_translate) throws IOException{
         TreeSet <String> notTranslation = new TreeSet <String>();
         try (FileWriter new_translate
                      = new FileWriter("new_" + FILE_NAME + ".txt", Charset.forName(CHARSET))){
@@ -185,7 +177,7 @@ public class LogicController {
             }
             new_translate.write("}");
         } catch (IOException e) {
-            e.printStackTrace();
+            showAlert(AlertType.ERROR, "Something goes wrong with write new files!");
         }
     }
 }
