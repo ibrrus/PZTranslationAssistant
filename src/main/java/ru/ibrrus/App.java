@@ -19,7 +19,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException, URISyntaxException {
         guiStage = stage;
-        scene = new Scene(loadFXML("mainwindow"));
+        scene = new Scene(loadFXML("mainwindow1.1"));
         stage.setScene(scene);
         MainWindowController.defaultDirectoryStr = new File(".").getCanonicalPath();
         stage.getIcons().add(new Image(App.class.getResource("img/logo.png").toString()));

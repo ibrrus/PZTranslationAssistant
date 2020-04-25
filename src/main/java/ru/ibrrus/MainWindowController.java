@@ -68,7 +68,7 @@ public class MainWindowController {
     @FXML
     private Label itemsOldLabel;
     @FXML
-    private TextField itemsOldPath;
+    private ListView itemsOldPath;
     @FXML
     private Button itemsOldBrowse;
 
@@ -95,7 +95,7 @@ public class MainWindowController {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         try {
             File t = fileChooser.showOpenDialog(App.guiStage);
-            itemsOldPath.setText(t.getPath());
+            itemsOldPath.getItems().add(t.getPath());
             itemsOldClear.setDisable(false);
             defaultDirectoryStr = t.getParentFile().toString();
         } catch (RuntimeException re){
@@ -104,7 +104,7 @@ public class MainWindowController {
 
     @FXML
     private void itemsOldClearCmd() throws IOException{
-        itemsOldPath.clear();
+        itemsOldPath.getItems().clear();
         itemsOldClear.setDisable(true);
     }
 
@@ -113,7 +113,7 @@ public class MainWindowController {
     @FXML
     private Label recipesOldLabel;
     @FXML
-    private TextField recipesOldPath;
+    private ListView recipesOldPath;
     @FXML
     private Button recipesOldBrowse;
 
@@ -140,7 +140,7 @@ public class MainWindowController {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         try {
             File t = fileChooser.showOpenDialog(App.guiStage);
-            recipesOldPath.setText(t.getPath());
+            recipesOldPath.getItems().add(t.getPath());
             defaultDirectoryStr = t.getParentFile().toString();
             recipesOldClear.setDisable(false);
         } catch (RuntimeException re){
@@ -149,7 +149,7 @@ public class MainWindowController {
 
     @FXML
     private void recipesOldClearCmd() throws IOException{
-        recipesOldPath.clear();
+        recipesOldPath.getItems().clear();
         recipesOldClear.setDisable(true);
     }
 
@@ -169,8 +169,8 @@ public class MainWindowController {
         List <File> scriptsList = textArea.getItems();
         Boolean itemsCheck = itemsCb.isSelected();
         Boolean recipesCheck = recipesCb.isSelected();
-        String itemsOldStr = itemsOldPath.getText();
-        String recipesOldStr = recipesOldPath.getText();
+        List <String> itemsOldStr = itemsOldPath.getItems();
+        List <String> recipesOldStr = recipesOldPath.getItems();
         try{
             LogicController.generate(scriptsList, itemsCheck, recipesCheck,itemsOldStr, recipesOldStr);
         } catch (IOException ex){

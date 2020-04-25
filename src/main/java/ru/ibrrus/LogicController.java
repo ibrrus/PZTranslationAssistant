@@ -25,7 +25,7 @@ public class LogicController {
     private static String ITEM_FILE_NAME = "Items_XX";
     private static String RECIPE_FILE_NAME = "Recipes_XX";
 
-    protected static void generate(List<File> scriptsList, Boolean itemsCheck, Boolean recipesCheck, String itemsOldStr, String recipesOldStr) throws IOException {
+    protected static void generate(List<File> scriptsList, Boolean itemsCheck, Boolean recipesCheck, List<String> itemsOldStr, List<String> recipesOldStr) throws IOException {
         Alert alert;
         if (scriptsList.isEmpty()) {
             alert = new Alert(AlertType.ERROR);
@@ -43,7 +43,7 @@ public class LogicController {
         if (itemsCheck) {
             getElements("Items", items_elements, scriptsList);
             if (!itemsOldStr.isEmpty()) {
-                takeOldTranslate(old_translate, itemsOldStr, ITEM_SEARCH_NAME);
+                takeOldTranslate(old_translate, itemsOldStr, ITEM_SEARCH_NAME, "windows-1251");
             }
             writeFiles(ITEM_FILE_NAME, ITEM_SEARCH_NAME, items_elements, !itemsOldStr.isEmpty(), old_translate);
         }
@@ -51,7 +51,7 @@ public class LogicController {
         if (recipesCheck) {
             getElements("Recipes", recipes_elements, scriptsList);
             if (!recipesOldStr.isEmpty()) {
-                takeOldTranslate(old_translate, recipesOldStr, RECIPE_SEARCH_NAME);
+                takeOldTranslate(old_translate, recipesOldStr, RECIPE_SEARCH_NAME, "windows-1251");
             }
             writeFiles(RECIPE_FILE_NAME, RECIPE_SEARCH_NAME, recipes_elements, !recipesOldStr.isEmpty(), old_translate);
         }
@@ -97,16 +97,35 @@ public class LogicController {
         }
     }
 
-    private static void takeOldTranslate(TreeMap old_translate, String оldStr, String SEARCH_NAME) {
+    private static void takeOldTranslate(TreeMap old_translate, List<String> оldFiles, String SEARCH_NAME,
+                                         String CHARSET) {
         old_translate.clear();
-        try (Stream<String> fileStream = Files.lines(Paths.get(оldStr), Charset.forName("windows-1251"))) {
-            fileStream.filter(s -> s.trim().startsWith(SEARCH_NAME)).forEach(s -> {
-                String key = s.substring(s.indexOf('_') + 1,s.indexOf('=')-1).trim().toLowerCase();
-                String value = s.substring(s.indexOf('=') + 1,s.lastIndexOf(',')).trim();
-                old_translate.put(key, value);
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
+        for (String oldFile : оldFiles) {
+            System.out.println(oldFile.toString());
+            try (Stream<String> fileStream = Files.lines(Paths.get(oldFile), Charset.forName(CHARSET))) {
+                fileStream.filter(s -> s.trim().startsWith(SEARCH_NAME)).forEach(s -> {
+                    try{
+                        String key = s.substring(s.indexOf('_') + 1, s.indexOf('=') - 1).trim().toLowerCase();
+                        String value = s.substring(s.indexOf('=') + 1, s.lastIndexOf(',')).trim();
+                        old_translate.put(key, value);
+                    } catch (Exception mie){
+                    }
+                });
+            } catch (Exception e) {
+                try (Stream<String> fileStream = Files.lines(Paths.get(oldFile))) {
+                    fileStream.filter(s -> s.trim().startsWith(SEARCH_NAME)).forEach(s -> {
+                        try{
+                            String key = s.substring(s.indexOf('_') + 1, s.indexOf('=') - 1).trim().toLowerCase();
+                            String value = s.substring(s.indexOf('=') + 1, s.lastIndexOf(',')).trim();
+                            old_translate.put(key, value);
+                        } catch (Exception mie){
+                        }
+                    });
+                } catch (IOException ea) {
+                    System.out.println("ERROR");
+                    //ea.printStackTrace();
+                }
+            }
         }
     }
 
@@ -114,7 +133,11 @@ public class LogicController {
         TreeSet <String> notTranslation = new TreeSet <String>();
         try (FileWriter new_translate
                      = new FileWriter("new_" + FILE_NAME + ".txt", Charset.forName("windows-1251"))){
-            new_translate.write("Items_XX = {\n");
+            if (FILE_NAME.startsWith("Item")) {
+                new_translate.write("Items_XX = {\n");
+            } else {
+                new_translate.write("Recipe_XX = {\n");
+            }
             new_translate.write("\t/* Created by PZTranslationAssistant */\n");
             new_translate.write("\t/* Datetime: " + new Date().toString() + " */\n\n");
             for (String item : elements) {
