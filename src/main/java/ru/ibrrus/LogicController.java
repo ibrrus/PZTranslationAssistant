@@ -11,10 +11,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Stream;
 
 
@@ -131,7 +128,7 @@ public class LogicController {
                 fileStream.filter(s -> s.trim().startsWith(SEARCH_NAME)).forEach(s -> {
                     try{
                         s = s.trim();
-                        String key = s.substring(SEARCH_NAME.length(), s.indexOf('=') - 1).trim().toLowerCase();
+                        String key = s.substring(SEARCH_NAME.length(), s.indexOf('=') - 1).trim();
                         if (key.startsWith("_")) key = key.substring(1);
                         String value = s.substring(s.indexOf('=') + 1, s.lastIndexOf(',')).trim();
                         old_translate.put(key, value);
@@ -140,7 +137,7 @@ public class LogicController {
                 });
             } catch (Exception ea) {
                 showAlert(AlertType.ERROR, "Something goes wrong with old translations! " +
-                        "                           Did you enter the correct language code?");
+                                                    "Did you enter the correct language code?");
             }
         }
     }
@@ -159,7 +156,7 @@ public class LogicController {
             new_translate.write("\t/* Datetime: " + new Date().toString() + " */\n\n");
             for (String item : elements) {
                 if (itemOldCheck) {
-                    String item_old = old_translate.get(item.toLowerCase());
+                    String item_old = old_translate.remove(item);
                     if (item_old == null) {
                         notTranslation.add("\t" + SEARCH_NAME + "_" + item + " = \""+ item.replace("_", " ") + "\",\n");
                     } else {
@@ -170,6 +167,14 @@ public class LogicController {
                 }
             }
             if (itemOldCheck) {
+                if (!old_translate.isEmpty()) {
+                    new_translate.write("\n\n\t/* DIDN'T FIND IN SCRIPT FILES, BUT FOUND IN OLD TRANSLATION: */\n\n\n");
+                    for (Map.Entry<String,String> entry : old_translate.entrySet()) {
+                        String item = entry.getKey();
+                        String item_old = entry.getValue();
+                        new_translate.write("\t\t" + SEARCH_NAME + "_" + item + " = " + item_old + ",\n");
+                    }
+                }
                 new_translate.write("\n\n\t/* NEED TO TRANSLATE: */\n\n\n");
                 for (String str : notTranslation){
                     new_translate.write(str);
